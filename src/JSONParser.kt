@@ -1,38 +1,40 @@
+import astify.*
+import astify.P
+import astify.Token
+import astify.util.*
 
-internal val jsonValueParser: P<JSONValue> = parser { p { branch(
-        string to (token map { JSONString(deString(it.text)) }),
-        oneOf(number, integer) to (token map { JSONNumber(it.text.toFloat()) }),
-        keyword("true") to (token map { JSONBoolean(true) }),
-        keyword("false") to (token map { JSONBoolean(false) }),
-        keyword("null") to (token map { JSONNull }),
-        symbol("{") to jsonObjectParser,
-        symbol("[") to jsonArrayParser
-) } }
+internal val jsonValueParser: P<Token, JSONValue> = parser2 { branch(
+        string to (string mapv { JSONString(it.value) }),
+        numeric to numeric,
+        symbol("-") to (numeric mapv { JSONNumber(-it.value) } preceededBy symbol("-")),
+        keyword("true") to (keyword("true") mapv { JSONBoolean(true) }),
+        keyword("false") to (keyword("false") mapv { JSONBoolean(false) }),
+        keyword("null") to (keyword("null") mapv { JSONNull }),
+        symbol("{") to lazy { jsonObjectParser },
+        symbol("[") to lazy { jsonArrayParser }
+) }
 
-internal val jsonObjectMemberParser = parser {
-    text(string) map ::deString followedBy symbol(":") andThen jsonValueParser }
+internal val ParserContext<Token>.numeric get()
+= number mapv { JSONNumber(it.value) } or (integer mapv { JSONNumber(it.value.toFloat()) })
 
-internal val jsonObjectParser = parser {
-    wrappedCommaSeparated("{", "}", jsonObjectMemberParser) map { JSONObject(it.toMap()) } }
+internal val jsonObjectMemberParser = parser2<Token, Pair<String, JSONValue>> {
+    string mapv { it.value } proceededBy symbol(":") then jsonValueParser
+}
 
-internal val jsonArrayParser = parser {
-    wrappedCommaSeparated("[", "]", jsonValueParser) map { JSONArray(it) } }
+internal val jsonObjectParser = parser2<Token, JSONValue> {
+    wrappedCommaSeparated("{", "}", jsonObjectMemberParser) mapv { JSONObject(it.toMap()) }
+}
 
-internal fun jsonLexer(s: TextStream)
-        = Lexer(s, LexerTools.keywords(listOf("true", "false", "null")) lexUnion LexerTools.defaults)
+internal val jsonArrayParser = parser2<Token, JSONValue> {
+    wrappedCommaSeparated("[", "]", jsonValueParser) mapv { JSONArray(it) } }
+
+internal val jsonLexer = lexerParser(setOf("true", "false", "null"))
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-private fun <T> wrappedCommaSeparated(s: String, e: String, term: P<T>) = parser.sequence {
-    p { symbol(s) }
-
-    if (p { optional(symbol(e)) } == null) {
-        val items = p { term sepBy symbol(",") }
-        p { symbol(e) }
-        items
-    }
-    else listOf()
-}
+private fun <T> ParserContext<Token>.wrappedCommaSeparated(s: String, e: String, term: P<Token, T>)
+        = symbol(s) then symbol(e) mapv { listOf<T>() } or
+        wrap(term sepBy symbol(","), symbol(s), symbol(e))
 
 private fun deString(s: String)
         = unescapeSpecialCharacters(s.substring(1, s.length - 1))

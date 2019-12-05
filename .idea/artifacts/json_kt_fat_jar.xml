@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="json-kt-fat:jar">
+    <output-path>$PROJECT_DIR$/../../out/fat</output-path>
+    <root id="archive" name="json-kt-fat.jar">
+      <element id="module-output" name="json-kt" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/kotlin-stdlib.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/kotlin-reflect.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/kotlin-test.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/kotlin-stdlib-jdk7.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/kotlin-stdlib-jdk8.jar" path-in-jar="/" />
+      <element id="library" level="application" name="lib/pcom" />
+    </root>
+  </artifact>
+</component>

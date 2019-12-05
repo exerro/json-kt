@@ -1,11 +1,16 @@
+import astify.ParseError
+import astify.TextStream
+import astify.parse
+import astify.parser2
 
 fun jsonParse(value: String): JSONValue {
-    val stream = StringTextStream(value)
-    val lexer = jsonLexer(stream)
-    val parser = parser { jsonValueParser followedBy eof }
+    val stream = TextStream(value)
 
-    return parser(PState(lexer)).getOr {
-        throw JSONDecodeError(it.getString(stream))
+    return try {
+        parse(stream, jsonLexer, parser2 { jsonValueParser proceededBy eof })
+    }
+    catch (e: ParseError) {
+        throw JSONDecodeError(e.message)
     }
 }
 
