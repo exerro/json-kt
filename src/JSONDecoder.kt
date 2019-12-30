@@ -1,7 +1,7 @@
 import astify.ParseError
 import astify.TextStream
 import astify.parse
-import astify.tokenP
+import astify.util.tokenP
 
 fun jsonParse(value: String): JSONValue {
     val stream = TextStream.create(value)

@@ -35,6 +35,3 @@ internal val jsonLexer = lexerParser(setOf("true", "false", "null"))
 private fun <T> TokenParser.wrappedCommaSeparated(s: String, e: String, term: P<Token, T>)
         = symbol(s) keepRight symbol(e) map { listOf<T>() } or
           wrap(term sepBy symbol(","), symbol(s), symbol(e))
-
-private fun unescapeSpecialCharacters(str: String)
-        = str.replace(Regex("\\\\(.)")) { it.groupValues[1] }
