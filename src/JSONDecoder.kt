@@ -1,13 +1,13 @@
 import astify.ParseError
 import astify.TextStream
 import astify.parse
-import astify.parser2
+import astify.tokenP
 
 fun jsonParse(value: String): JSONValue {
-    val stream = TextStream(value)
+    val stream = TextStream.create(value)
 
     return try {
-        parse(stream, jsonLexer, parser2 { jsonValueParser proceededBy eof })
+        parse(stream, jsonLexer, tokenP { jsonValueParser keepLeft eof })
     }
     catch (e: ParseError) {
         throw JSONDecodeError(e.message)
