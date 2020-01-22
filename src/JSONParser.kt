@@ -1,37 +1,34 @@
-import astify.*
-import astify.P
 import astify.Token
-import astify.util.*
+import astify.monadic.*
+import astify.monadic.util.*
 
-internal val jsonValueParser: TP<JSONValue> = tokenP { branch(
-        string to (string map { JSONString(it.value) }),
-        numeric to numeric,
-        symbol("-") to (symbol("-") keepRight numeric map { JSONNumber(-it.value) }),
-        keyword("true") to (keyword("true") map { JSONBoolean(true) }),
-        keyword("false") to (keyword("false") map { JSONBoolean(false) }),
-        keyword("null") to (keyword("null") map { JSONNull }),
-        symbol("{") to lazy { jsonObjectParser },
-        symbol("[") to lazy { jsonArrayParser }
+typealias JSONParser<Value> = P<ListParserState<Token>, String, Value>
+typealias JP<Value> = JSONParser<Value>
+
+internal val jsonValueParser: JP<JSONValue> = p { oneOf(
+        stringValue map (::JSONString),
+        lazy { numeric },
+        symbol("-") keepRight lazy { numeric } map { JSONNumber(-it.value) },
+        keyword("true") map { JSONBoolean(true) },
+        keyword("false") map { JSONBoolean(false) },
+        keyword("null") map { JSONNull },
+        lazy { jsonObjectParser },
+        lazy { jsonArrayParser }
 ) }
 
-internal val TokenParser.numeric get()
-= number map { JSONNumber(it.value) } or (integer map { JSONNumber(it.value.toFloat()) })
-
-internal val jsonObjectMemberParser: TP<Pair<String, JSONValue>> = tokenP {
-    string map { it.value } keepLeft symbol(":") and jsonValueParser
+internal val numeric: JP<JSONNumber> = p {
+    numberValue map(::JSONNumber) or (integerValue map { JSONNumber(it.toFloat()) })
 }
 
-internal val jsonObjectParser: TP<JSONValue> = tokenP {
-    wrappedCommaSeparated("{", "}", jsonObjectMemberParser) map { JSONObject(it.toMap()) }
+internal val jsonObjectMemberParser: JP<Pair<String, JSONValue>> = p {
+    stringValue keepLeft symbol(":") and jsonValueParser
 }
 
-internal val jsonArrayParser: TP<JSONValue> = tokenP {
-    wrappedCommaSeparated("[", "]", jsonValueParser) map { JSONArray(it) } }
+internal val jsonObjectParser: JP<JSONValue> = p {
+    wrapDelimitedSymbols(jsonObjectMemberParser, "{", "}") map { JSONObject(it.toMap()) }
+}
 
-internal val jsonLexer = lexerParser(setOf("true", "false", "null"))
+internal val jsonArrayParser: JP<JSONValue> = p {
+    wrapDelimitedSymbols(jsonValueParser, "[", "]") map { JSONArray(it) } }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-
-private fun <T> TokenParser.wrappedCommaSeparated(s: String, e: String, term: P<Token, T>)
-        = symbol(s) keepRight symbol(e) map { listOf<T>() } or
-          wrap(term sepBy symbol(","), symbol(s), symbol(e))
+internal val jsonLexer = untilEOF(tokenParser(setOf("true", "false", "null")))

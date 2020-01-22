@@ -1,19 +1,3 @@
-import astify.ParseError
-import astify.TextStream
-import astify.parse
-import astify.util.tokenP
-
-fun jsonParse(value: String): JSONValue {
-    val stream = TextStream.create(value)
-
-    return try {
-        parse(stream, jsonLexer, tokenP { jsonValueParser keepLeft eof })
-    }
-    catch (e: ParseError) {
-        throw JSONDecodeError(e.message)
-    }
-}
-
 inline fun <T> jsonDecode(value: String, fn: JSONDecoder<T>)
         = fn(jsonParse(value))
 
@@ -98,9 +82,9 @@ class JSONObjectDecoder internal constructor(private val value: JSONObject) {
 
 fun main() {
     println(jsonDecode("\"hello\"", jsonDecodeString))
-    // println(jsonDecode("\"\\\\\\\"\"", jsonDecodeString)) // TODO: fix string escapes
+    println(jsonDecode("\"\\\\\\\"\"", jsonDecodeString))
     println(jsonDecode("5", jsonDecodeInteger))
-    println(jsonDecode("5", jsonDecodeNumber))
+    println(jsonDecode("-5", jsonDecodeNumber))
     println(jsonDecode("5.6", jsonDecodeNumber))
     println(jsonDecode("true", jsonDecodeBoolean))
 
