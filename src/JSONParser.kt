@@ -31,4 +31,4 @@ internal val jsonObjectParser: JP<JSONValue> = p {
 internal val jsonArrayParser: JP<JSONValue> = p {
     wrapDelimitedSymbols(jsonValueParser, "[", "]") map { JSONArray(it) } }
 
-internal val jsonLexer = untilEOF(tokenParser(setOf("true", "false", "null")))
+internal val jsonLexer = lexer(tokenParser(setOf("true", "false", "null")))
