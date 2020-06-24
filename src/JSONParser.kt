@@ -32,3 +32,45 @@ internal val jsonArrayParser: JP<JSONValue> = p {
     wrapDelimitedSymbols(jsonValueParser, "[", "]") map { JSONArray(it) } }
 
 internal val jsonLexer = lexer(tokenParser(setOf("true", "false", "null")))
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+const val TEST_STR = "{\n" +
+        "\"name\": \"LED\",\n" +
+        "\"attributes\": [\n" +
+        "{\n" +
+        "\"name\": \"pin\",\n" +
+        "\"default\": 13\n" +
+        "},\n" +
+        "{\n" +
+        "\"name\": \"initial\",\n" +
+        "\"default\": 0\n" +
+        "}\n" +
+        "],\n" +
+        "\"methods\": [\n" +
+        "{\n" +
+        "\"name\": \"write\",\n" +
+        "\"parameters\": [\"on\"],\n" +
+        "\"returns\": false\n" +
+        "},\n" +
+        "{\n" +
+        "\"name\": \"on\",\n" +
+        "\"parameters\": [],\n" +
+        "\"returns\": false\n" +
+        "},\n" +
+        "{\n" +
+        "\"name\": \"off\",\n" +
+        "\"parameters\": [],\n" +
+        "\"returns\": false\n" +
+        "},\n" +
+        "{\n" +
+        "\"name\": \"toggle\",\n" +
+        "\"parameters\": [],\n" +
+        "\"returns\": false\n" +
+        "}\n" +
+        "]\n" +
+        "}"
+
+fun main() {
+    println(jsonParse(TEST_STR))
+}

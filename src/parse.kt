@@ -1,6 +1,8 @@
 import astify.Position
 import astify.TextStream
-import astify.monadic.*
+import astify.monadic.ParseResult
+import astify.monadic.PositionedTokenParserState
+import astify.monadic.thenEOF
 import astify.monadic.util.ListParserState
 import astify.monadic.util.TextStreamParserState
 
